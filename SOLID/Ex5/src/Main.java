@@ -10,14 +10,21 @@ public class Main {
         System.out.println("PDF: " + safe(pdf, req));
         System.out.println("CSV: " + safe(csv, req));
         System.out.println("JSON: " + safe(json, req));
+        
+        System.out.println();
+        System.out.println("--- Stretch Goal: XML Exporter ---");
+        Exporter xml = new XmlExporter();
+        System.out.println("XML: " + safe(xml, req));
+        
+        ExportRequest shortReq = new ExportRequest("Summary", "A,B\n1,2");
+        System.out.println("XML (short): " + safe(xml, shortReq));
     }
 
     private static String safe(Exporter e, ExportRequest r) {
-        try {
-            ExportResult out = e.export(r);
-            return "OK bytes=" + out.bytes.length;
-        } catch (RuntimeException ex) {
-            return "ERROR: " + ex.getMessage();
+        ExportResult out = e.export(r);
+        if (!out.success) {
+            return "ERROR: " + out.errorMessage;
         }
+        return "OK bytes=" + out.bytes.length;
     }
 }
