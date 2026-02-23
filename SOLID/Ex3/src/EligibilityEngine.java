@@ -2,33 +2,36 @@ import java.util.*;
 
 public class EligibilityEngine {
     private final FakeEligibilityStore store;
+    private final List<EligibilityRule> rules;
 
-    public EligibilityEngine(FakeEligibilityStore store) { this.store = store; }
+    public EligibilityEngine(FakeEligibilityStore store, List<EligibilityRule> rules) {
+        this.store = store;
+        this.rules = rules;
+    }
 
     public void runAndPrint(StudentProfile s) {
         ReportPrinter p = new ReportPrinter();
-        EligibilityEngineResult r = evaluate(s); // giant conditional inside
+        EligibilityEngineResult r = evaluate(s);
         p.print(s, r);
         store.save(s.rollNo, r.status);
     }
 
+    /**
+     * Evaluate student against all configured rules.
+     * Open/Closed Principle: Add new rules without modifying this method.
+     */
     public EligibilityEngineResult evaluate(StudentProfile s) {
         List<String> reasons = new ArrayList<>();
         String status = "ELIGIBLE";
 
-        // OCP violation: long chain for each rule
-        if (s.disciplinaryFlag != LegacyFlags.NONE) {
-            status = "NOT_ELIGIBLE";
-            reasons.add("disciplinary flag present");
-        } else if (s.cgr < 8.0) {
-            status = "NOT_ELIGIBLE";
-            reasons.add("CGR below 8.0");
-        } else if (s.attendancePct < 75) {
-            status = "NOT_ELIGIBLE";
-            reasons.add("attendance below 75");
-        } else if (s.earnedCredits < 20) {
-            status = "NOT_ELIGIBLE";
-            reasons.add("credits below 20");
+        // Iterate through all rules - no more if/else chain!
+        for (EligibilityRule rule : rules) {
+            RuleResult result = rule.check(s);
+            if (!result.passed) {
+                status = "NOT_ELIGIBLE";
+                reasons.add(result.failureReason);
+                break; // Stop at first failure (preserves original behavior)
+            }
         }
 
         return new EligibilityEngineResult(status, reasons);
