@@ -15,17 +15,15 @@ public class MapMarker {
     private final double lng;
     private final String label;
 
-    // BROKEN: style is created per marker; should be shared
     private final MarkerStyle style;
 
     public MapMarker(double lat, double lng, String label,
-                     String shape, String color, int size, boolean filled) {
+                     MarkerStyle style) {
         this.lat = lat;
         this.lng = lng;
         this.label = label;
 
-        // BROKEN: per-marker allocation
-        this.style = new MarkerStyle(shape, color, size, filled);
+        this.style = style;
     }
 
     public double getLat() { return lat; }
